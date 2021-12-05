@@ -1,1 +1,1 @@
-nmap <leader>tt :!bundle exec ruby % \| tee >(pbcopy)<cr>
+nmap <leader>tt :vsp<cr>:terminal bundle exec ruby %<cr>A

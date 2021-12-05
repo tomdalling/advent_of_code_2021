@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby -Ilib
+
 POS = {horizontal: 0.0, aim: 0.0, depth: 0.0}
 
 COMMANDS = DATA.lines

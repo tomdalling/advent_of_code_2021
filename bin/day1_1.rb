@@ -1,12 +1,12 @@
+#!/usr/bin/env ruby -Ilib
+
 DEPTHS = DATA.lines.map(&:strip).map(&:to_i)
-WINDOWS = DEPTHS.zip(DEPTHS.drop(1), DEPTHS.drop(2)).reject { _1.any?(&:nil?) }
 
 puts(
-  WINDOWS.zip([nil] + WINDOWS).count do |(this_window, prev_window)|
-    prev_window && this_window.sum > prev_window.sum
+  DEPTHS.zip([nil] + DEPTHS).count do |(this_depth, prev_depth)|
+    prev_depth && this_depth > prev_depth
   end
 )
-
 __END__
 190
 168

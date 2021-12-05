@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby -Ilib
+
 class Line < Struct.new(:x1, :y1, :x2, :y2)
   def self.parse(line)
     new(*line.split('->').flat_map { _1.split(',') }.map(&:strip).map(&:to_i))
@@ -12,8 +14,8 @@ class Line < Struct.new(:x1, :y1, :x2, :y2)
       step(x1, x2).map do |x|
         [x, y1]
       end
-    else
-      raise NotImplementedError, "only handles lines perpendicular to the X or Y axis: #{self}"
+    else # must be diagonal
+      step(x1, x2).zip(step(y1, y2))
     end
   end
 
@@ -22,8 +24,8 @@ class Line < Struct.new(:x1, :y1, :x2, :y2)
   end
 
   def step(v1, v2)
-    v1, v2 = v2, v1 if v2 < v1
-    v1.upto(v2).to_a
+    m = (v1 <= v2 ? :upto : :downto)
+    v1.public_send(m, v2).to_a
   end
 end
 
@@ -46,7 +48,7 @@ class Grid
 end
 
 grid = Grid.new
-LINES.select(&:axis_aligned?).each { grid.mark_line(_1) }
+LINES.each { grid.mark_line(_1) }
 puts grid.count_cells(min_overlaps: 2)
 
 __END__

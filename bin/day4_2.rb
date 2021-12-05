@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby -Ilib
+
 require 'byebug'
 
 Cell = Struct.new(:number, :marked?)
@@ -76,21 +78,19 @@ BOARDS = RAW_BOARDS.map do |raw_board|
 end
 
 last_number = nil
+last_boards = nil
 
 NUMBERS.each do |number|
   last_number = number
+  last_boards = BOARDS.dup
   BOARDS.each { _1.mark!(number) }
-  break if BOARDS.any?(&:bingo?)
+  BOARDS.reject!(&:bingo?)
+  break if BOARDS.empty?
 end
 
-raise "multwinners" if BOARDS.select(&:bingo?).size != 1
+raise "multwinners" if last_boards.size != 1
 
-winner = BOARDS
-  .select(&:bingo?)
-  .map { [_1, _1.sum_of_unmarked * last_number] }
-  .max_by(&:last)
-
-pp winner
+puts last_boards.first.sum_of_unmarked * last_number
 
 
 __END__

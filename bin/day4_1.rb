@@ -1,14 +1,13 @@
+#!/usr/bin/env ruby -Ilib
+
 require 'byebug'
+require 'grid'
 
 Cell = Struct.new(:number, :marked?)
 
-class Board
-  def initialize(cells)
-    @cells = cells
-  end
-
+class Board < Grid
   def mark!(number)
-    @cells.flatten.each do |cell|
+    cells.each do |cell|
       if cell.number == number
         cell[:marked?] = true
       end
@@ -20,37 +19,29 @@ class Board
   end
 
   def sum_of_unmarked
-    @cells.flatten.reject(&:marked?).sum(&:number)
-  end
-
-  def rows
-    @cells
-  end
-
-  def columns
-    rows.transpose
+    cells.reject(&:marked?).sum(&:number)
   end
 
   def diagonals
     [
       [
-        @cells[0][0],
-        @cells[1][1],
-        @cells[2][2],
-        @cells[3][3],
-        @cells[4][4],
+        self[0,0],
+        self[1,1],
+        self[2,2],
+        self[3,3],
+        self[4,4],
       ],[
-        @cells[4][0],
-        @cells[3][1],
-        @cells[2][2],
-        @cells[1][3],
-        @cells[0][4],
+        self[4,0],
+        self[3,1],
+        self[2,2],
+        self[1,3],
+        self[0,4],
       ]
     ]
   end
 
   def to_s
-    @cells.map do |row|
+    rows.map do |row|
       row.map do |c|
         left, right = c.marked? ? ["(", ")"] : [" ", " "]
         "#{left}#{c.number.to_s.rjust(2, ' ')}#{right}"
@@ -66,7 +57,7 @@ end
 RAW_NUMBERS, *RAW_BOARDS = DATA.read.split("\n\n")
 NUMBERS = RAW_NUMBERS.split(',').map(&:to_i)
 BOARDS = RAW_BOARDS.map do |raw_board|
-  Board.new(
+  Board.from_rows(
     raw_board.strip.lines.map do |raw_row|
       raw_row.strip.split.map do |raw_cell|
         Cell.new(raw_cell.strip.to_i, false)
@@ -76,19 +67,21 @@ BOARDS = RAW_BOARDS.map do |raw_board|
 end
 
 last_number = nil
-last_boards = nil
 
 NUMBERS.each do |number|
   last_number = number
-  last_boards = BOARDS.dup
   BOARDS.each { _1.mark!(number) }
-  BOARDS.reject!(&:bingo?)
-  break if BOARDS.empty?
+  break if BOARDS.any?(&:bingo?)
 end
 
-raise "multwinners" if last_boards.size != 1
+raise "multwinners" if BOARDS.select(&:bingo?).size != 1
 
-puts last_boards.first.sum_of_unmarked * last_number
+winner = BOARDS
+  .select(&:bingo?)
+  .map { [_1, _1.sum_of_unmarked * last_number] }
+  .max_by(&:last)
+
+pp winner
 
 
 __END__

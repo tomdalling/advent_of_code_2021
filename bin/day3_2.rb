@@ -1,5 +1,12 @@
-COLS = DATA.lines.map(&:strip).map(&:chars).transpose
+#!/usr/bin/env ruby -Ilib
+
+require 'byebug'
+
+NUMS = DATA.lines.map(&:strip).map(&:chars)
+COLS = NUMS.transpose
 INVERT = { "1" => "0", "0" => "1" }
+
+COL_COUNTS = COLS.map(&:tally)
 
 gamma = COLS
   .map { _1.tally.to_a.sort_by(&:last).last }
@@ -8,7 +15,34 @@ gamma = COLS
 
 epsilon = gamma.chars.map { INVERT.fetch(_1) }.join
 
-puts Integer(gamma, 2) * Integer(epsilon, 2)
+oxygen_candidates = NUMS.dup
+NUMS.first.size.times do |idx|
+  all_counts = oxygen_candidates.transpose.map(&:tally)
+  counts = all_counts[idx]
+  right_digit = (counts["0"] > counts["1"] ? "0" : "1")
+  oxygen_candidates.select! do |candidate|
+    candidate[idx] == right_digit
+  end
+  break if oxygen_candidates.size == 1
+end
+raise "WAWAW222" unless oxygen_candidates.size == 1
+
+co2_candidates = NUMS.dup
+NUMS.first.size.times do |idx|
+  all_counts = co2_candidates.transpose.map(&:tally)
+  counts = all_counts[idx]
+  right_digit = (counts["0"] <= counts["1"] ? "0" : "1")
+  co2_candidates.select! do |candidate|
+    candidate[idx] == right_digit
+  end
+  break if co2_candidates.size == 1
+end
+raise "WAWAW" unless co2_candidates.size == 1
+
+oxygen = Integer(oxygen_candidates.first.join, 2)
+co2 = Integer(co2_candidates.first.join, 2)
+
+puts oxygen * co2
 
 __END__
 011111101011

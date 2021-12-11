@@ -77,14 +77,6 @@ class DepthMap < Grid
     ].reject { out_of_bounds?(*_1) }
   end
 
-  def out_of_bounds?(x, y)
-    return true if x < 0
-    return true if x >= column_count
-    return true if y < 0
-    return true if y >= row_count
-    false
-  end
-
   def propagate_flows
     updated_cells = 0
 

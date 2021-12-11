@@ -48,6 +48,33 @@ class Grid
     end
   end
 
+  def out_of_bounds?(x, y)
+    return true if x < 0
+    return true if x >= column_count
+    return true if y < 0
+    return true if y >= row_count
+    false
+  end
+
+  def each_neighbour_of(x, y)
+    return enum_for(__method__) unless block_given?
+
+    [
+      [x - 1, y - 1],
+      [x - 1, y - 0],
+      [x - 1, y + 1],
+
+      [x - 0, y - 1],
+      [x - 0, y + 1],
+
+      [x + 1, y - 1],
+      [x + 1, y - 0],
+      [x + 1, y + 1],
+    ].reject { out_of_bounds?(*_1) }.each do |(nx, ny)|
+      yield self[nx, ny], x, y
+    end
+  end
+
   def columns
     Array.new(column_count) do |col_idx|
       rows.map { _1[col_idx] }

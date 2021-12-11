@@ -24,14 +24,6 @@ class DepthMap < Grid
       [x + 1, y + 1],
     ].reject { out_of_bounds?(*_1) }
   end
-
-  def out_of_bounds?(x, y)
-    return true if x < 0
-    return true if x >= column_count
-    return true if y < 0
-    return true if y >= row_count
-    false
-  end
 end
 
 depth_map = DepthMap.from_rows(

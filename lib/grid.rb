@@ -81,9 +81,18 @@ class Grid
     end
   end
 
+  def transpose
+    dup.tap(&:transpose!)
+  end
+
   def transpose!
     @rows = rows.transpose
     @row_count, @column_count = @column_count, @row_count
+  end
+
+  def dup
+    row_dup = Marshal.load(Marshal.dump(@rows))
+    self.class.from_rows(row_dup)
   end
 
   def []=(col_idx, row_idx, value)

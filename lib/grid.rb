@@ -56,21 +56,21 @@ class Grid
     false
   end
 
-  def each_neighbour_of(x, y)
+  def each_neighbour_of(x, y, diagonals: true)
     return enum_for(__method__) unless block_given?
 
     [
-      [x - 1, y - 1],
+      ([x - 1, y - 1] if diagonals),
       [x - 1, y - 0],
-      [x - 1, y + 1],
+      ([x - 1, y + 1] if diagonals),
 
       [x - 0, y - 1],
       [x - 0, y + 1],
 
-      [x + 1, y - 1],
+      ([x + 1, y - 1] if diagonals),
       [x + 1, y - 0],
-      [x + 1, y + 1],
-    ].reject { out_of_bounds?(*_1) }.each do |(nx, ny)|
+      ([x + 1, y + 1] if diagonals),
+    ].compact.reject { out_of_bounds?(*_1) }.each do |(nx, ny)|
       yield self[nx, ny], x, y
     end
   end

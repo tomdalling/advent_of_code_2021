@@ -51,4 +51,8 @@ class Vec2
   def -@
     self.class[-x, -y]
   end
+
+  def to_s
+    "#<#{self.class} #{x}, #{y}>"
+  end
 end

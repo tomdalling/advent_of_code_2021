@@ -268,10 +268,17 @@ end
 
 assert "magnitude(Pair.coerce([[9,1],[1,9]])) == 129"
 
-DATA.lines
+nums = DATA.lines
   .map { |line| Pair.coerce(eval(line)) } # dont look
-  .reduce { add(_1, _2) }
-  .tap { pp magnitude(_1) }
+
+all_combos = nums.combination(2).flat_map { [_1, _1.reverse] }
+
+biggest = all_combos.max_by do |(n1, n2)|
+  magnitude(add(n1, n2))
+end
+
+pp biggest
+pp magnitude(add(*biggest))
 
 __END__
 [3,[5,[7,[3,9]]]]

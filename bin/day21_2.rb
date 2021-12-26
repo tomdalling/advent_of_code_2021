@@ -1,59 +1,60 @@
 #!/usr/bin/env ruby -Ilib
 
-PLAYERS = [:p1, :p2]
-BOARD_SIZE = 10
+class Game
+  BOARD_SIZE = 10
+  MOVE_PROBS = {3=>1, 4=>3, 5=>6, 6=>7, 7=>6, 8=>3, 9=>1} # out of 27
+  WIN_SCORE = 21
 
-def roll
-  rand(1..3)
-end
+  attr_reader :scores, :positions, :next_turn
 
-def winner(scores)
-  scores.find{ _2 >= 21 }&.first
-end
+  # Player 1 starting position: 10
+  # Player 2 starting position: 3
+  def initialize(positions: [9,2], next_turn: 0, scores: [0,0])
+    @positions = positions
+    @next_turn = next_turn
+    @scores = scores
+  end
 
-def loser(scores)
-  return nil unless winner(scores)
-  (scores.keys - [winner(scores)]).first
-end
+  def after_move(distance)
+    new_positions = positions.dup
+    new_positions[next_turn] = (positions[next_turn] + distance) % BOARD_SIZE
 
-def roll_probabilities
-  options = (1..3).to_a
-  options.product(options, options).map(&:sum).tally.sort_by(&:first).to_h
-end
+    new_scores = scores.dup
+    new_scores[next_turn] += new_positions[next_turn] + 1
 
+    self.class.new(
+      positions: new_positions,
+      next_turn: (next_turn + 1) % positions.size,
+      scores: new_scores,
+    )
+  end
 
-(3..9).each do |offset|
-  puts "== Offset #{offset} ===="
-  0.upto(9) do |starting_pos|
-    positions = {
-      p1: starting_pos,
-      # p2: 2,
-    }
+  def finished?
+    not winner.nil?
+  end
 
-    scores = {
-      p1: 0,
-      # p2: 0,
-    }
-
-    turns = 0
-
-    until winner(scores)
-      positions.keys.each do |p|
-        # offset = roll + roll + roll
-        turns += 1
-        pbefore = positions[p]
-        positions[p] = (positions[p] + offset) % BOARD_SIZE
-        scores[p] += positions[p] + 1
-        # puts "#{p} + #{offset} (from #{pbefore} to #{positions[p]})"
-        break if winner(scores)
-      end
+  def winner
+    scores.each_with_index do |sc, player_idx|
+      return player_idx if sc >= WIN_SCORE
     end
 
-    puts "  Won in #{turns} turns from position #{starting_pos+1}"
+    nil # game not over yet
+  end
+
+  def win_probabilities
+    return {winner => 1} if finished?
+
+    MOVE_PROBS.map do |roll, occurrences|
+      after_move(roll).win_probabilities.transform_values { _1 * occurrences }
+    end.reduce do |p1, p2|
+      p1.merge(p2) do |_, v1, v2|
+        v1 + v2
+      end
+    end
   end
 end
 
-pp scores
+# pp Game.new.win_probabilities
 
-pp roll_probabilities
-pp roll_probabilities.values.sum
+probs = {1=>49950658789496, 0=>93726416205179}
+pp probs.to_a.sort_by(&:last)

@@ -3,6 +3,7 @@
 require 'byebug'
 require 'vec3'
 require 'set'
+require 'json'
 
 DIRECTIONS = %i[up left down right forward back]
 ROTATIONS = %i[0 90 180 270]
@@ -215,46 +216,58 @@ SCANNERS
 toff_2_fixed = toff_2.in_space_of(toff_1, 3)
 byebug unless toff_2_fixed
 
-SCANNERS = Scanner.parse_all(DATA.read)
+# SCANNERS = Scanner.parse_all(DATA.read)
 
-base_scanner, *disoriented = SCANNERS
-oriented = [base_scanner]
-nopes = Set.new
+# base_scanner, *disoriented = SCANNERS
+# oriented = [base_scanner]
+# nopes = Set.new
 
-until disoriented.empty?
-  found_idx = nil
+# until disoriented.empty?
+#   found_idx = nil
 
-  puts "#{disoriented.size} remaining"
+#   puts "#{disoriented.size} remaining"
 
-  disoriented.each_with_index do |diso, idx|
-    oriented.each_with_index do |ori|
-      next if nopes.include?([diso.idx, ori.idx])
+#   disoriented.each_with_index do |diso, idx|
+#     oriented.each_with_index do |ori|
+#       next if nopes.include?([diso.idx, ori.idx])
 
-      fixed = diso.in_space_of(ori, 12)
-      if fixed
-        puts "MATCHED #{diso.idx} to #{ori.idx}"
-        puts fixed
-        oriented << fixed
-        found_idx = idx
-        break
-      else
-        nopes << [diso.idx, ori.idx]
-        puts "  NOPE: #{diso.idx} - #{ori.idx}"
-      end
-    end
-    break if found_idx
-  end
+#       fixed = diso.in_space_of(ori, 12)
+#       if fixed
+#         puts "MATCHED #{diso.idx} to #{ori.idx}"
+#         puts fixed
+#         oriented << fixed
+#         found_idx = idx
+#         break
+#       else
+#         nopes << [diso.idx, ori.idx]
+#         puts "  NOPE: #{diso.idx} - #{ori.idx}"
+#       end
+#     end
+#     break if found_idx
+#   end
 
-  if found_idx.nil?
-    raise "Couldn't orient any of the scanners :("
-  end
+#   if found_idx.nil?
+#     raise "Couldn't orient any of the scanners :("
+#   end
 
-  disoriented.delete_at(found_idx)
-end
+#   disoriented.delete_at(found_idx)
+# end
 
-total_beacons = oriented.sum { _1.beacons.size }
-uniq_beacons = oriented.flat_map{ _1.beacons }.uniq.size
-puts "#{uniq_beacons} unique beacon positions out of #{total_beacons}"
+# total_beacons = oriented.sum { _1.beacons.size }
+# uniq_beacons = oriented.flat_map{ _1.beacons }.uniq.size
+# puts "#{uniq_beacons} unique beacon positions out of #{total_beacons}"
+
+# offsets = oriented.map { _1.position.to_a }
+# pp offsets
+# File.write("offsets.json", JSON.pretty_generate(offsets))
+
+offsets = JSON.parse(File.read("offsets.json")).map { Vec3[*_1] }
+puts (
+  offsets.product(offsets).map do |fromv, tov|
+    diff = fromv - tov
+    diff.x.abs + diff.y.abs + diff.z.abs
+  end.max
+)
 
 __END__
 --- scanner 0 ---
